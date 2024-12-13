@@ -13,38 +13,49 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '22.11.0'
-
-      - name: Detect changed lambdas
-        id: detect_changed_lambdas
+            - name: Fetch the full history
         run: |
-          # Buscar histórico completo do repositório
           git fetch --prune --unshallow
 
-          # Confirmar o branch remoto
-          git fetch origin master
-          CHANGED_FILES=$(git diff --name-only origin/master...HEAD)
+      - name: Find the merged PR branch
+        id: find_pr_branch
+        run: |
+          # Encontrar o commit de merge
+          MERGE_COMMIT=$(git log --merges -n 1 --pretty=format:"%H")
+          echo "Merge commit: $MERGE_COMMIT"
+          
+          # Obter a branch de origem da PR a partir do commit de merge
+          PR_BRANCH=$(git log --merges -n 1 --pretty=format:"%s" | grep -oP '(?<=Merge pull request #\d+ from )(.*)(?=\s*$)')
+          echo "PR Branch: $PR_BRANCH"
+          echo "PR_BRANCH=$PR_BRANCH" >> $GITHUB_ENV
 
+      - name: Find the common base commit
+        id: find_base_commit
+        run: |
+          # Agora que sabemos a branch da PR, encontramos a base comum
+          BASE_COMMIT=$(git merge-base origin/master origin/${{ env.PR_BRANCH }})
+          echo "Base commit: $BASE_COMMIT"
+          echo "BASE_COMMIT=$BASE_COMMIT" >> $GITHUB_ENV
+
+      - name: Detect changed files after PR merge
+        id: detect_changed_lambdas
+        run: |
+          # Comparar os arquivos entre a base da PR e o commit atual (após o merge)
+          CHANGED_FILES=$(git diff --name-only ${{ env.BASE_COMMIT }} HEAD)
           echo "Changed files: $CHANGED_FILES"
-
-          # Mostrar conteúdo da pasta src/lambdas/
-          echo "Verificando diretórios em 'src/lambdas/':"
-          ls -l src/lambdas/ || echo "Nenhum diretório encontrado."
 
           # Identificar quais Lambdas foram alteradas
           CHANGED_LAMBDAS=""
           for lambda in src/lambdas/*; do
-            if [ -d "$lambda" ]; then  # Apenas diretórios
+            if [ -d "$lambda" ]; then
               lambda_name=$(basename "$lambda")
-              echo "Verificando lambda: $lambda_name"
               if echo "$CHANGED_FILES" | grep -q "src/lambdas/$lambda_name"; then
                 CHANGED_LAMBDAS="$CHANGED_LAMBDAS $lambda_name"
               fi
             fi
           done
 
-          # Remover espaços desnecessários no início e no final
           CHANGED_LAMBDAS=$(echo "$CHANGED_LAMBDAS" | xargs)
-
           echo "Changed lambdas: $CHANGED_LAMBDAS"
           echo "changed_lambdas=$CHANGED_LAMBDAS" >> $GITHUB_ENV
 
