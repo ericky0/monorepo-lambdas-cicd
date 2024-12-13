@@ -46,6 +46,8 @@ export const handler = async (
     error: '',
   }
 
+  console.log('test2')
+
   try {
     // example: ?url=https://news.ycombinator.com&name=hnews
     const params = event.queryStringParameters as unknown as Input
