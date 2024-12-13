@@ -14,6 +14,7 @@ export interface Input {
 export interface Output {
   title: string
   s3_url: string
+  error: string
 }
 
 const BUCKET = 'erick-storage'
@@ -42,16 +43,23 @@ export const handler = async (
   const output: Output = {
     title: '',
     s3_url: '',
+    error: '',
   }
 
   try {
     // example: ?url=https://news.ycombinator.com&name=hnews
     const params = event.queryStringParameters as unknown as Input
 
+    if (!params.name || params.url) {
+      throw Error('name and url are required')
+    }
+
     const res = await axios.get(params.url)
+
     output.title = cheerio.load(res.data)('head > title').text()
     output.s3_url = await storage.storeHtmlFile(res.data, params.name)
   } catch (error) {
+    output.error = error instanceof Error ? error.message : String(error)
     console.log(error)
   }
 
