@@ -45,7 +45,7 @@ jobs:
           echo "Changed lambdas: $CHANGED_LAMBDAS"
           echo "changed_lambdas=$CHANGED_LAMBDAS" >> $GITHUB_ENV
 
-            - name: Install Dependencies
+      - name: Install Dependencies
         env:
           CI: true
         run: |
@@ -61,7 +61,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      
+
       - name: Build and Deploy changed lambdas
         run: |
           for lambda in ${{ env.changed_lambdas }}; do
