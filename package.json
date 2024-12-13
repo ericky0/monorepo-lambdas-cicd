@@ -2,6 +2,9 @@
   "name": "lambda-url-to-html",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "22.11.0"
+  },
   "scripts": {
     "deploy": "lambda-build upload lambda-url-to-html -r us-east-2",
     "test": "mocha --recursive 'tests' --extension ts --exit --require esbuild-register --timeout 20000"
