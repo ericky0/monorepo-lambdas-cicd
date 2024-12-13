@@ -33,8 +33,8 @@ jobs:
       - name: Find the common base commit
         id: find_base_commit
         run: |
-          # Agora que sabemos a branch da PR, encontramos a base comum
-          BASE_COMMIT=$(git merge-base origin/master origin/${{ env.PR_BRANCH }})
+          # Agora, você pode comparar a master com a branch da PR de forma dinâmica
+          BASE_COMMIT=$(git merge-base origin/master origin/${PR_BRANCH})
           echo "Base commit: $BASE_COMMIT"
           echo "BASE_COMMIT=$BASE_COMMIT" >> $GITHUB_ENV
 
