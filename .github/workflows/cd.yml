@@ -9,13 +9,6 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - name: Create a backup of the master branch
-        run: |
-          # Cria uma branch de backup da master sem fazer o checkout dela
-          git fetch origin master
-          git branch backup-master origin/master
-          git push origin backup-master
-
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
@@ -28,8 +21,8 @@ jobs:
           git fetch --prune --unshallow
 
           # Confirmar o branch remoto
-          git fetch origin backup-master
-          CHANGED_FILES=$(git diff --name-only origin/backup-master...HEAD)
+          git fetch origin master
+          CHANGED_FILES=$(git diff --name-only origin/master...HEAD)
 
           echo "Changed files: $CHANGED_FILES"
 
