@@ -27,7 +27,7 @@ jobs:
 
           # Obter a branch de origem da PR a partir do commit de merge
           PR_BRANCH=$(git log --merges -n 1 --pretty=format:"%s" | sed -n 's/^Merge pull request #\([0-9]*\) from \(.*\)$/\2/p')
-          CLEAN_BRANCH=$(echo "${PR_BRANCH}" | sed 's/^[^/]*\//\//')
+          CLEAN_BRANCH=$(echo "${PR_BRANCH}" | sed 's/^[^/]*\//')
           echo "PR Branch: $CLEAN_BRANCH"
           echo "CLEAN_BRANCH=$CLEAN_BRANCH" >> $GITHUB_ENV
 
