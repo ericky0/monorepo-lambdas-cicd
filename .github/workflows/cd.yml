@@ -9,50 +9,51 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
+      - name: Create a backup of the master branch
+        run: |
+          # Cria uma branch de backup da master sem fazer o checkout dela
+          git fetch origin master
+          git branch backup-master origin/master
+          git push origin backup-master
+
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: '22.11.0'
 
-      - name: Fetch the full history
-        run: git fetch --prune --unshallow
-
-      # Find the merged PR branch and base commit
-      - name: Determine PR Branch and Base Commit
-        id: determine_commits
-        run: |
-          # Find the merge commit SHA
-          MERGE_COMMIT=$(git log -1 --merges --format="%H")
-          echo "Merge Commit: $MERGE_COMMIT" >> $GITHUB_ENV
-
-          # Find the PR branch name
-          PR_BRANCH=$(git rev-parse --symbolic-full-name --short HEAD@{1})
-          echo "PR Branch: $PR_BRANCH" >> $GITHUB_ENV
-
-          # Find the base commit SHA
-          BASE_COMMIT=$(git merge-base $PR_BRANCH origin/master)
-          echo "Base Commit: $BASE_COMMIT" >> $GITHUB_ENV
-
-      - name: Detect changed files
+      - name: Detect changed lambdas
         id: detect_changed_lambdas
         run: |
-          # List changed files between the base commit and the merge commit
-          CHANGED_FILES=$(git diff --name-only ${{ env.BASE_COMMIT }} ${{ env.MERGE_COMMIT }})
-          echo "Changed Files: $CHANGED_FILES"
+          # Buscar histórico completo do repositório
+          git fetch --prune --unshallow
 
-          # Identify changed Lambdas
+          # Confirmar o branch remoto
+          git fetch origin backup-master
+          CHANGED_FILES=$(git diff --name-only origin/backup-master...HEAD)
+
+          echo "Changed files: $CHANGED_FILES"
+
+          # Mostrar conteúdo da pasta src/lambdas/
+          echo "Verificando diretórios em 'src/lambdas/':"
+          ls -l src/lambdas/ || echo "Nenhum diretório encontrado."
+
+          # Identificar quais Lambdas foram alteradas
           CHANGED_LAMBDAS=""
           for lambda in src/lambdas/*; do
-            if [ -d "$lambda" ]; then
+            if [ -d "$lambda" ]; then  # Apenas diretórios
               lambda_name=$(basename "$lambda")
+              echo "Verificando lambda: $lambda_name"
               if echo "$CHANGED_FILES" | grep -q "src/lambdas/$lambda_name"; then
                 CHANGED_LAMBDAS="$CHANGED_LAMBDAS $lambda_name"
               fi
             fi
           done
 
+          # Remover espaços desnecessários no início e no final
           CHANGED_LAMBDAS=$(echo "$CHANGED_LAMBDAS" | xargs)
-          echo "Changed Lambdas: $CHANGED_LAMBDAS" >> $GITHUB_ENV
+
+          echo "Changed lambdas: $CHANGED_LAMBDAS"
+          echo "changed_lambdas=$CHANGED_LAMBDAS" >> $GITHUB_ENV
 
       - name: Install Dependencies
         env:
