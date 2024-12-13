@@ -1,0 +1,70 @@
+name: ci
+
+on: push
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '22.11.0'
+
+      - name: Detect changed lambdas
+        id: detect_changed_lambdas
+        run: |
+          # FETCH FULL REPOSITORY HISTORY
+          git fetch --prune --unshallow
+
+          # CONFIRM REMOTE BRANCH
+          git fetch origin master
+          CHANGED_FILES=$(git diff --name-only origin/master...HEAD)
+
+          echo "Changed files: $CHANGED_FILES"
+
+          # SHOW CONTENT OF FOLDER => src/lambdas/
+          echo "VERIFYING DIRECTORIES IN => 'src/lambdas/':"
+          ls -l src/lambdas/ || echo "NO DIRECTORY FOUND."
+
+          # IDENTIFY WHICH LAMBDAS HAS BEEN MODIFIED
+          CHANGED_LAMBDAS=""
+          for lambda in src/lambdas/*; do
+            if [ -d "$lambda" ]; then  # ONLY DIRECTORIES
+              lambda_name=$(basename "$lambda")
+              echo "VERIFYING LAMBDA: $lambda_name"
+              if echo "$CHANGED_FILES" | grep -q "src/lambdas/$lambda_name"; then
+                CHANGED_LAMBDAS="$CHANGED_LAMBDAS $lambda_name"
+              fi
+            fi
+          done
+
+          # REMOVE UNNECESSARY SPACES AT THE START AND END
+          CHANGED_LAMBDAS=$(echo "$CHANGED_LAMBDAS" | xargs)
+
+          echo "Changed lambdas: $CHANGED_LAMBDAS"
+          echo "changed_lambdas=$CHANGED_LAMBDAS" >> $GITHUB_ENV
+
+            - name: Install Dependencies
+        env:
+          CI: true
+        run: |
+          npm install
+
+      - name: Run Tests
+        run: |
+          npm test
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Build and Deploy changed lambdas
+        run: |
+          for lambda in ${{ env.changed_lambdas }}; do
+            echo "LAMBDA BUILD AND DEPLOY"
+            npx lambda-build upload $lambda -e src/lambdas/$lambda/index.ts -r ${{ secrets.AWS_REGION }}
+          done
