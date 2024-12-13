@@ -24,7 +24,12 @@ jobs:
 
           # Criar um branch temporário para salvar o estado da master antes da PR
           git checkout -b master-snapshot
-          git push https://github.com/${{ github.repository }} master-snapshot
+
+          # Autenticar o git para poder fazer o push com o GITHUB_TOKEN
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+          # Agora podemos fazer o push da branch master-snapshot para o repositório
+          git push origin master-snapshot
 
       # Passo 3: Checkout da branch da PR (código da PR).
       - name: Checkout PR branch
