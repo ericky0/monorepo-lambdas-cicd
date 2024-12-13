@@ -27,7 +27,9 @@ jobs:
 
           # Exibir as lambdas encontradas
           echo "Lambdas encontradas: $LAMBDA_DIRECTORIES"
-          echo "lambdas=$LAMBDA_DIRECTORIES" >> $GITHUB_ENV
+
+          # Definir a variável de ambiente lambdas como uma lista separada por vírgulas
+          echo "lambdas=${LAMBDA_DIRECTORIES// /,}" >> $GITHUB_ENV
 
       - name: Install Dependencies
         env:
