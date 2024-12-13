@@ -14,39 +14,20 @@ jobs:
         with:
           node-version: '22.11.0'
 
-      - name: Detect changed lambdas
-        id: detect_changed_lambdas
+      - name: Show Lambda directories
         run: |
-          # Buscar histórico completo do repositório
-          git fetch --prune --unshallow
-
-          # Confirmar o branch remoto
-          git fetch origin master
-          CHANGED_FILES=$(git diff --name-only origin/master...HEAD)
-
-          echo "Changed files: $CHANGED_FILES"
-
-          # Mostrar conteúdo da pasta src/lambdas/
           echo "Verificando diretórios em 'src/lambdas/':"
           ls -l src/lambdas/ || echo "Nenhum diretório encontrado."
 
-          # Identificar quais Lambdas foram alteradas
-          CHANGED_LAMBDAS=""
-          for lambda in src/lambdas/*; do
-            if [ -d "$lambda" ]; then  # Apenas diretórios
-              lambda_name=$(basename "$lambda")
-              echo "Verificando lambda: $lambda_name"
-              if echo "$CHANGED_FILES" | grep -q "src/lambdas/$lambda_name"; then
-                CHANGED_LAMBDAS="$CHANGED_LAMBDAS $lambda_name"
-              fi
-            fi
-          done
+      # Listar todas as lambdas e adicionar na variável
+      - name: List all lambdas
+        run: |
+          # Listar todos os diretórios em src/lambdas e armazenar em uma variável
+          LAMBDA_DIRECTORIES=$(find src/lambdas -maxdepth 1 -type d -exec basename {} \;)
 
-          # Remover espaços desnecessários no início e no final
-          CHANGED_LAMBDAS=$(echo "$CHANGED_LAMBDAS" | xargs)
-
-          echo "Changed lambdas: $CHANGED_LAMBDAS"
-          echo "changed_lambdas=$CHANGED_LAMBDAS" >> $GITHUB_ENV
+          # Exibir as lambdas encontradas
+          echo "Lambdas encontradas: $LAMBDA_DIRECTORIES"
+          echo "lambdas=$LAMBDA_DIRECTORIES" >> $GITHUB_ENV
 
       - name: Install Dependencies
         env:
