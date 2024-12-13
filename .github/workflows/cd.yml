@@ -22,11 +22,14 @@ jobs:
       # Listar todas as lambdas e adicionar na variável
       - name: List all lambdas
         run: |
-          # Listar todos os diretórios dentro de src/lambdas, excluindo a pasta src/lambdas
-          LAMBDA_DIRECTORIES=$(find src/lambdas -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
+          # Criar o array com os nomes das pastas em src/lambdas
+          LAMBDA_ARRAY=( $(ls -d src/lambdas/*/ | xargs -n 1 basename) )
 
           # Exibir as lambdas encontradas
-          echo "Lambdas encontradas: $LAMBDA_DIRECTORIES"
+          echo "Lambdas encontradas: ${LAMBDA_ARRAY[@]}"
+
+          # Definir a variável de ambiente lambdas
+          echo "LAMBDA_ARRAY=${LAMBDA_ARRAY[*]}" >> $GITHUB_ENV
 
       - name: Install Dependencies
         env:
