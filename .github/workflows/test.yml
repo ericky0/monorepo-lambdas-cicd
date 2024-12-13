@@ -22,6 +22,10 @@ jobs:
           git checkout master
           git reset --hard origin/master  # Faz o reset para garantir que estamos na versão mais recente da master
 
+          # Configurar identidade do autor para evitar erro de identidade
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
           # Criar um commit temporário apenas para capturar o estado da master
           git commit --allow-empty -m "Snapshot of master before PR merge"
           git tag master-snapshot  # Criamos uma tag localmente, sem empurrar para o remoto
