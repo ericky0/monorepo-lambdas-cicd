@@ -13,7 +13,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '22.11.0'
-            - name: Fetch the full history
+
+      - name: Fetch the full history
         run: |
           git fetch --prune --unshallow
 
@@ -23,7 +24,7 @@ jobs:
           # Encontrar o commit de merge
           MERGE_COMMIT=$(git log --merges -n 1 --pretty=format:"%H")
           echo "Merge commit: $MERGE_COMMIT"
-          
+
           # Obter a branch de origem da PR a partir do commit de merge
           PR_BRANCH=$(git log --merges -n 1 --pretty=format:"%s" | grep -oP '(?<=Merge pull request #\d+ from )(.*)(?=\s*$)')
           echo "PR Branch: $PR_BRANCH"
