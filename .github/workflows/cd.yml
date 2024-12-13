@@ -51,27 +51,8 @@ jobs:
             fi
           done
 
-          echo "Changed Lambdas: $CHANGED_LAMBDAS" >> $GITHUB_ENV
-        id: detect_changed_lambdas
-        run: |
-          # Comparar os arquivos entre a base da PR e o commit atual (após o merge)
-          CHANGED_FILES=$(git diff --name-only ${{ env.BASE_COMMIT }} HEAD)
-          echo "Changed files: $CHANGED_FILES"
-
-          # Identificar quais Lambdas foram alteradas
-          CHANGED_LAMBDAS=""
-          for lambda in src/lambdas/*; do
-            if [ -d "$lambda" ]; then
-              lambda_name=$(basename "$lambda")
-              if echo "$CHANGED_FILES" | grep -q "src/lambdas/$lambda_name"; then
-                CHANGED_LAMBDAS="$CHANGED_LAMBDAS $lambda_name"
-              fi
-            fi
-          done
-
           CHANGED_LAMBDAS=$(echo "$CHANGED_LAMBDAS" | xargs)
-          echo "Changed lambdas: $CHANGED_LAMBDAS"
-          echo "changed_lambdas=$CHANGED_LAMBDAS" >> $GITHUB_ENV
+          echo "Changed Lambdas: $CHANGED_LAMBDAS" >> $GITHUB_ENV
 
       - name: Install Dependencies
         env:
