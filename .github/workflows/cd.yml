@@ -14,32 +14,60 @@ jobs:
         with:
           node-version: '22.11.0'
 
+      name: CD
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '22.11.0'
+
       - name: Fetch the full history
+        run: git fetch --prune --unshallow
+
+      # Find the merged PR branch and base commit
+      - name: Determine PR Branch and Base Commit
+        id: determine_commits
         run: |
-          git fetch --prune --unshallow
+          # Find the merge commit SHA
+          MERGE_COMMIT=$(git log -1 --merges --format="%H")
+          echo "Merge Commit: $MERGE_COMMIT" >> $GITHUB_ENV
 
-      - name: Find the merged PR branch
-        id: find_pr_branch
+          # Find the PR branch name
+          PR_BRANCH=$(git rev-parse --symbolic-full-name --short HEAD@{1})
+          echo "PR Branch: $PR_BRANCH" >> $GITHUB_ENV
+
+          # Find the base commit SHA
+          BASE_COMMIT=$(git merge-base $PR_BRANCH origin/master)
+          echo "Base Commit: $BASE_COMMIT" >> $GITHUB_ENV
+
+      - name: Detect changed files
+        id: detect_changed_lambdas
         run: |
-          # Encontrar o commit de merge
-          MERGE_COMMIT=$(git log --merges -n 1 --pretty=format:"%H")
-          echo "Merge commit: $MERGE_COMMIT"
+          # List changed files between the base commit and the merge commit
+          CHANGED_FILES=$(git diff --name-only ${{ env.BASE_COMMIT }} ${{ env.MERGE_COMMIT }})
+          echo "Changed Files: $CHANGED_FILES"
 
-          # Obter a branch de origem da PR a partir do commit de merge
-          PR_BRANCH=$(git log --merges -n 1 --pretty=format:"%s" | sed -n 's/^Merge pull request #\([0-9]*\) from \(.*\)$/\2/p')
-          CLEAN_BRANCH=$(echo "${PR_BRANCH}" | sed 's/^[^/]*\//\//')
-          echo "PR Branch: $CLEAN_BRANCH"
-          echo "CLEAN_BRANCH=$CLEAN_BRANCH" >> $GITHUB_ENV
+          # Identify changed Lambdas
+          CHANGED_LAMBDAS=""
+          for lambda in src/lambdas/*; do
+            if [ -d "$lambda" ]; then
+              lambda_name=$(basename "$lambda")
+              if echo "$CHANGED_FILES" | grep -q "src/lambdas/$lambda_name"; then
+                CHANGED_LAMBDAS="$CHANGED_LAMBDAS $lambda_name"
+              fi
+            fi
+          done
 
-      - name: Find the common base commit
-        id: find_base_commit
-        run: |
-          # Agora, você pode comparar a master com a branch da PR de forma dinâmica
-          BASE_COMMIT=$(git merge-base origin/master origin${CLEAN_BRANCH})
-          echo "Base commit: $BASE_COMMIT"
-          echo "BASE_COMMIT=$BASE_COMMIT" >> $GITHUB_ENV
-
-      - name: Detect changed files after PR merge
+          echo "Changed Lambdas: $CHANGED_LAMBDAS" >> $GITHUB_ENV
         id: detect_changed_lambdas
         run: |
           # Comparar os arquivos entre a base da PR e o commit atual (após o merge)
