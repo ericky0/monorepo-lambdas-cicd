@@ -26,6 +26,7 @@ const executeLambda = async (
 const title = 'This is the title of example.com'
 const s3UrlFile = 'https://s3fileurl.com'
 const html = `<html><head><title>${title}</title></head></html>`
+const name = '__file_name__'
 
 afterEach(restore)
 
@@ -36,14 +37,13 @@ describe('handler', async () => {
     })
     stub(storage, 'storeHtmlFile').resolves(s3UrlFile)
 
-    const output = await executeLambda('http://example.com', '')
+    const output = await executeLambda('http://example.com', name)
 
     strictEqual(output?.title, title)
     strictEqual(output?.s3_url, s3UrlFile)
   })
 
   it('it should extract from the converted url into html the page title', async () => {
-    const name = '__file_name__'
     stub(axios, 'get').resolves({ data: html })
     const storeHtmlStub = stub(storage, 'storeHtmlFile').resolves(s3UrlFile)
 
