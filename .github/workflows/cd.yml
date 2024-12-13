@@ -28,8 +28,15 @@ jobs:
           # Exibir as lambdas encontradas
           echo "Lambdas encontradas: $LAMBDA_DIRECTORIES"
 
-          # Definir a variável de ambiente lambdas como uma lista separada por vírgulas
-          echo "lambdas=${LAMBDA_DIRECTORIES// /,}" >> $GITHUB_ENV
+          # Salvar as lambdas como uma lista, uma em cada linha
+          echo "$LAMBDA_DIRECTORIES" > lambdas_list.txt
+
+          # Exibir as lambdas listadas no arquivo
+          cat lambdas_list.txt
+
+          # Agora, definindo a variável de ambiente com o conteúdo do arquivo
+          # Adiciona a lista de lambdas como uma variável de ambiente
+          echo "lambdas=$(cat lambdas_list.txt | tr '\n' ' ')" >> $GITHUB_ENV
 
       - name: Install Dependencies
         env:
