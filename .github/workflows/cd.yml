@@ -28,16 +28,6 @@ jobs:
           # Exibir as lambdas encontradas
           echo "Lambdas encontradas: $LAMBDA_DIRECTORIES"
 
-          # Salvar as lambdas como uma lista, uma em cada linha
-          echo "$LAMBDA_DIRECTORIES" > lambdas_list.txt
-
-          # Exibir as lambdas listadas no arquivo
-          cat lambdas_list.txt
-
-          # Agora, definindo a variável de ambiente com o conteúdo do arquivo
-          # Adiciona a lista de lambdas como uma variável de ambiente
-          echo "lambdas=$(cat lambdas_list.txt | tr '\n' ' ')" >> $GITHUB_ENV
-
       - name: Install Dependencies
         env:
           CI: true
@@ -53,7 +43,7 @@ jobs:
 
       - name: Build and Deploy changed lambdas
         run: |
-          for lambda in ${{ env.changed_lambdas }}; do
+          for lambda in ${{ env.LAMBDA_DIRECTORIES }}; do
             echo "LAMBDA BUILD AND DEPLOY"
             npx lambda-build upload $lambda -e src/lambdas/$lambda/index.ts -r ${{ secrets.AWS_REGION }}
           done
