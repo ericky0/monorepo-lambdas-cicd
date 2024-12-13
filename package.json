@@ -1,0 +1,25 @@
+{
+  "name": "lambda-url-to-html",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "deploy": "lambda-build upload lambda-url-to-html -r us-east-2",
+    "test": "mocha --recursive 'tests' --extension ts --exit --require esbuild-register --timeout 20000"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.146",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.10.2",
+    "@types/sinon": "^17.0.3",
+    "esbuild-register": "^3.6.0",
+    "sinon": "^19.0.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.709.0",
+    "axios": "^1.7.9",
+    "cheerio": "^1.0.0",
+    "mocha": "^11.0.1"
+  }
+}
