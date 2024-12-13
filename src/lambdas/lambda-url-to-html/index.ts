@@ -50,7 +50,7 @@ export const handler = async (
     // example: ?url=https://news.ycombinator.com&name=hnews
     const params = event.queryStringParameters as unknown as Input
 
-    if (!params.name || !params.url) {
+    if (!params?.name || !params?.url) {
       throw Error('name and url are required')
     }
 
