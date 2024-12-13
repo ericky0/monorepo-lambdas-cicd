@@ -46,7 +46,7 @@ export const handler = async (
     error: '',
   }
 
-  console.log('test3')
+  console.log('test4')
 
   try {
     // example: ?url=https://news.ycombinator.com&name=hnews
