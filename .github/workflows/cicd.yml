@@ -14,32 +14,32 @@ jobs:
       - name: Detect changed lambdas
         id: detect_changed_lambdas
         run: |
-          # FETCH FULL REPOSITORY HISTORY
+          # Buscar histórico completo do repositório
           git fetch --prune --unshallow
 
-          # CONFIRM REMOTE BRANCH
+          # Confirmar o branch remoto
           git fetch origin master
           CHANGED_FILES=$(git diff --name-only origin/master...HEAD)
 
           echo "Changed files: $CHANGED_FILES"
 
-          # SHOW CONTENT OF FOLDER => src/lambdas/
-          echo "VERIFYING DIRECTORIES IN => 'src/lambdas/':"
-          ls -l src/lambdas/ || echo "NO DIRECTORY FOUND."
+          # Mostrar conteúdo da pasta src/lambdas/
+          echo "Verificando diretórios em 'src/lambdas/':"
+          ls -l src/lambdas/ || echo "Nenhum diretório encontrado."
 
-          # IDENTIFY WHICH LAMBDAS HAS BEEN MODIFIED
+          # Identificar quais Lambdas foram alteradas
           CHANGED_LAMBDAS=""
           for lambda in src/lambdas/*; do
-            if [ -d "$lambda" ]; then  # ONLY DIRECTORIES
+            if [ -d "$lambda" ]; then  # Apenas diretórios
               lambda_name=$(basename "$lambda")
-              echo "VERIFYING LAMBDA: $lambda_name"
+              echo "Verificando lambda: $lambda_name"
               if echo "$CHANGED_FILES" | grep -q "src/lambdas/$lambda_name"; then
                 CHANGED_LAMBDAS="$CHANGED_LAMBDAS $lambda_name"
               fi
             fi
           done
 
-          # REMOVE UNNECESSARY SPACES AT THE START AND END
+          # Remover espaços desnecessários no início e no final
           CHANGED_LAMBDAS=$(echo "$CHANGED_LAMBDAS" | xargs)
 
           echo "Changed lambdas: $CHANGED_LAMBDAS"
