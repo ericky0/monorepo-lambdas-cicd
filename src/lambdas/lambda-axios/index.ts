@@ -4,7 +4,7 @@ import { generateLog } from './service'
 export const handler = async () => {
   // test to see if only axios dependency will be published to lambda
   axios.get('http://example')
-  generateLog('test8')
+  generateLog('test9')
 
   return {
     statusCode: 200,
