@@ -22,8 +22,8 @@ jobs:
       # Listar todas as lambdas e adicionar na variável
       - name: List all lambdas
         run: |
-          # Listar todos os diretórios em src/lambdas e armazenar em uma variável
-          LAMBDA_DIRECTORIES=$(find src/lambdas -maxdepth 1 -type d -exec basename {} \;)
+          # Listar todos os diretórios dentro de src/lambdas, excluindo a pasta src/lambdas
+          LAMBDA_DIRECTORIES=$(find src/lambdas -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 
           # Exibir as lambdas encontradas
           echo "Lambdas encontradas: $LAMBDA_DIRECTORIES"
