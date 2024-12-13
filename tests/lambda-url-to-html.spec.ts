@@ -37,7 +37,7 @@ describe('handler', async () => {
     })
     stub(storage, 'storeHtmlFile').resolves(s3UrlFile)
 
-    const output = await executeLambda('http://example.com', name)
+    const output = await executeLambda(`${s3UrlFile}/?url=test&name=test`, name)
 
     strictEqual(output?.title, title)
     strictEqual(output?.s3_url, s3UrlFile)
