@@ -1,0 +1,41 @@
+name: Snapshot and Compare PR
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  compare-pr:
+    runs-on: ubuntu-latest
+    steps:
+      # Passo 1: Checkout da master para garantir que estamos com a versão mais recente da master.
+      - name: Checkout master branch
+        uses: actions/checkout@v2
+        with:
+          ref: 'refs/heads/master' # Garante que estamos pegando a última versão da master no repositório.
+
+      # Passo 2: Armazenar o estado da master antes da PR ser mergeada.
+      - name: Get snapshot of master before PR merge
+        run: |
+          git fetch origin master
+          git checkout master
+          git reset --hard origin/master  # Faz o reset para garantir que estamos na versão mais recente da master
+
+          # Criar um branch temporário para salvar o estado da master antes da PR
+          git checkout -b master-snapshot
+          git push origin master-snapshot
+
+      # Passo 3: Checkout da branch da PR (código da PR).
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }} # Referência à branch da PR
+
+      # Passo 4: Comparar a master-snapshot com a PR
+      - name: Compare changed files between PR and master snapshot
+        run: |
+          # Agora, vamos comparar as alterações entre a master (snapshot) e a branch da PR
+          git fetch origin master-snapshot
+          git diff --name-only origin/master-snapshot...${{ github.head_ref }} > changed_files.txt
+          cat changed_files.txt  # Exibe os arquivos que foram modificados
