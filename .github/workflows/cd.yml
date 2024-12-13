@@ -46,7 +46,7 @@ jobs:
 
       - name: Build and Deploy changed lambdas
         run: |
-          for lambda in ${{ env.LAMBDA_DIRECTORIES }}; do
-            echo "LAMBDA BUILD AND DEPLOY"
+          for lambda in "${LAMBDA_ARRAY[@]}"; do
+            echo "Deploying $lambda"
             npx lambda-build upload $lambda -e src/lambdas/$lambda/index.ts -r ${{ secrets.AWS_REGION }}
           done
