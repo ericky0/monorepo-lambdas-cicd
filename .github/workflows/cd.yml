@@ -1,4 +1,4 @@
-name: cd
+name: Deploy Lambda
 
 on:
   push:
@@ -6,47 +6,83 @@ on:
       - master
 
 jobs:
-  ci:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '22.11.0'
 
-      - name: Show Lambda directories
+      - name: Create snapshot branch (snapshot_master)
+        id: create_snapshot
         run: |
+          # Criar uma branch temporária snapshot_master no estado anterior ao merge
+          PREV_COMMIT=${{ github.event.before }}
+          echo "Criando branch snapshot_master no commit anterior: $PREV_COMMIT"
+          git fetch origin
+          git checkout $PREV_COMMIT -b snapshot_master
+          git push origin snapshot_master
+
+      - name: Detect changed lambdas
+        id: detect_changed_lambdas
+        run: |
+          # Buscar histórico completo do repositório
+          git fetch --prune --unshallow
+
+          # Confirmar o branch remoto
+          git fetch origin master
+
+          # Identificar mudanças entre master e snapshot_master
+          CHANGED_FILES=$(git diff --name-only origin/snapshot_master...HEAD)
+
+          echo "Changed files: $CHANGED_FILES"
+
+          # Mostrar conteúdo da pasta src/lambdas/
           echo "Verificando diretórios em 'src/lambdas/':"
           ls -l src/lambdas/ || echo "Nenhum diretório encontrado."
 
-      # Listar todas as lambdas e adicionar na variável
-      - name: List all lambdas
-        run: |
-          # Criar o array com os nomes das pastas em src/lambdas
-          LAMBDA_ARRAY=( $(ls -d src/lambdas/*/ | xargs -n 1 basename) )
+          # Identificar quais Lambdas foram alteradas
+          CHANGED_LAMBDAS=""
+          for lambda in src/lambdas/*; do
+            if [ -d "$lambda" ]; then  # Apenas diretórios
+              lambda_name=$(basename "$lambda")
+              echo "Verificando lambda: $lambda_name"
+              if echo "$CHANGED_FILES" | grep -q "src/lambdas/$lambda_name"; then
+                CHANGED_LAMBDAS="$CHANGED_LAMBDAS $lambda_name"
+              fi
+            fi
+          done
 
-          # Exibir as lambdas encontradas
-          echo "Lambdas encontradas: ${LAMBDA_ARRAY[@]}"
+          # Remover espaços desnecessários no início e no final
+          CHANGED_LAMBDAS=$(echo "$CHANGED_LAMBDAS" | xargs)
 
-          # Definir a variável de ambiente lambdas
-          echo "LAMBDA_ARRAY=${LAMBDA_ARRAY[*]}" >> $GITHUB_ENV
-
-      - name: Install Dependencies
-        env:
-          CI: true
-        run: |
-          npm install
+          echo "Changed lambdas: $CHANGED_LAMBDAS"
+          echo "changed_lambdas=$CHANGED_LAMBDAS" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: us-east-1
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Build and Deploy changed lambdas
         run: |
-          for lambda in "${LAMBDA_ARRAY[@]}"; do
-            echo "Deploying $lambda"
+          for lambda in ${{ env.changed_lambdas }}; do
+            echo "Deploy to aws"
             npx lambda-build upload $lambda -e src/lambdas/$lambda/index.ts -r ${{ secrets.AWS_REGION }}
           done
+
+      - name: Delete snapshot branch
+        if: always()
+        run: |
+          echo "Deletando branch snapshot_master"
+          git push origin --delete snapshot_master
