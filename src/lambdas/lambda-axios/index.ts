@@ -6,6 +6,7 @@ export const handler = async () => {
   axios.get('http://example')
   console.log('commit 1')
   generateLog('test1112334')
+  console.log('commit 3')
 
   return {
     statusCode: 200,
