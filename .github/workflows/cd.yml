@@ -41,7 +41,7 @@ jobs:
         id: detect_changed_lambdas
         run: |
           # Buscar histórico completo do repositório
-          git fetch --prune --unshallow
+          git fetch --prune
 
           # Confirmar o branch remoto
           git fetch origin master
