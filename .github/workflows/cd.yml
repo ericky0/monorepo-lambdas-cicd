@@ -34,6 +34,7 @@ jobs:
           echo "Criando branch snapshot_master no commit anterior: $PREV_COMMIT"
           git fetch origin
           git checkout $PREV_COMMIT -b snapshot_master
+          git reset HEAD .github/workflows/ || echo "Sem arquivos de workflow para resetar."
           git push origin snapshot_master
 
       - name: Detect changed lambdas
