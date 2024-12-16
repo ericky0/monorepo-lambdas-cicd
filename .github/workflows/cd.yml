@@ -21,8 +21,12 @@ jobs:
       - name: Create snapshot branch (snapshot_master)
         id: create_snapshot
         run: |
+          # Buscar histórico completo do repositório
+          git fetch --prune --unshallow
+
           # Criar uma branch temporária snapshot_master no estado anterior ao merge
           PREV_COMMIT=${{ github.event.before }}
+
           echo "Criando branch snapshot_master no commit anterior: $PREV_COMMIT"
           git fetch origin
           git checkout $PREV_COMMIT -b snapshot_master
