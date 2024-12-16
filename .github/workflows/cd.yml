@@ -90,8 +90,8 @@ jobs:
             npx lambda-build upload $lambda -e src/lambdas/$lambda/index.ts -r ${{ secrets.AWS_REGION }}
           done
 
-      - name: Delete snapshot branch
-        if: always()
-        run: |
-          echo "Deletando branch snapshot_master"
-          git push origin --delete snapshot_master
+      # - name: Delete snapshot branch
+      #   if: always()
+      #   run: |
+      #     echo "Deletando branch snapshot_master"
+      #     git push origin --delete snapshot_master
