@@ -47,6 +47,7 @@ export const handler = async (
   }
 
   console.log('test11')
+  console.log('commit2')
 
   try {
     // example: ?url=https://news.ycombinator.com&name=hnews
